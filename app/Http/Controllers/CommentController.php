@@ -5,10 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Comment;
 use App\Models\Post;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class CommentController extends Controller
+class CommentController extends Controller implements HasMiddleware
 {
     //
+    public static function middleware() {
+        return [
+            new Middleware('auth:sanctum', except: ['index', 'show'])
+        ];
+    }
+
     public function index(Post $post)
     {
         return $post->comments;
@@ -30,4 +38,5 @@ class CommentController extends Controller
     ]);
 
 }
+
 }
