@@ -20,11 +20,33 @@ class PostController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
+    // public function index()
+    // {   
+    //     $post = Post::all();
+    //     return $post;
+    // }
+
     public function index()
-    {   
-        $post = Post::all();
-        return $post;
+{
+    // Start with an empty collection of posts
+    $posts = collect();
+
+    // Always return public posts
+    $publicPosts = Post::where('status', 'public')->get();
+    $posts = $posts->merge($publicPosts);
+
+    // If user is authenticated, return their private posts as well
+    if (auth()->check()) {
+        // Fetch private posts belonging to the authenticated user
+        $userPrivatePosts = Post::where('user_id', auth()->id())
+                                ->where('status', 'private')
+                                ->get();
+
+        $posts = $posts->merge($userPrivatePosts);
     }
+
+    return response()->json($posts);
+}
 
     /**
      * Store a newly created resource in storage.
@@ -34,6 +56,7 @@ class PostController extends Controller implements HasMiddleware
         $fields = $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
+            'status' => 'in:public,private',
         ]);
 
         // $fields['user_id'] = Auth::id();
@@ -49,8 +72,9 @@ class PostController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Post $post)
+    public function show(Request $request,Post $post)
     {
+        $this->authorize('view', $post);
         return $post;
     }
 
@@ -62,7 +86,8 @@ class PostController extends Controller implements HasMiddleware
         Gate::authorize('modify', $post);
         $fields = $request->validate([
             'title' => 'required|max:255',
-            'body' => 'required'
+            'body' => 'required',
+            'status' => 'in:public,private',
         ]);
 
         $post->update($fields);

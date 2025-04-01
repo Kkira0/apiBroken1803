@@ -16,6 +16,7 @@ Route::apiResource('posts.comments', CommentController::class);
 //     // Create a comment for a post
 //     Route::post('posts/{postId}/comments', [CommentController::class, 'store']);
 // });
+Route::delete('posts/{post}/comments/{comment}', [CommentController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
